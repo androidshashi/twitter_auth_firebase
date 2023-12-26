@@ -1,20 +1,27 @@
 package com.androidshashi.twitter_auth_firebase
 
-import androidx.annotation.NonNull
-
+import android.app.Activity
+import android.util.Log
+import com.google.android.gms.tasks.Task
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.OAuthCredential
+import com.google.firebase.auth.OAuthProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
 
 /** TwitterAuthFirebasePlugin */
-class TwitterAuthFirebasePlugin: FlutterPlugin, MethodCallHandler {
+class TwitterAuthFirebasePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
+  private var activity: Activity? = null
 
   private val CHANNEL = "twitter_auth_firebase"
   private val provider = OAuthProvider.newBuilder("twitter.com")
@@ -24,11 +31,25 @@ class TwitterAuthFirebasePlugin: FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL)
     channel.setMethodCallHandler(this)
+  }
+
+  override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
+    activity = activityPluginBinding.getActivity()
     configFirebase();
   }
 
-   fun configFirebase() {
-    FirebaseApp.initializeApp(applicationContext)
+  override fun onDetachedFromActivityForConfigChanges() {
+    // This call will be followed by onReattachedToActivityForConfigChanges().
+  }
+
+  override fun onReattachedToActivityForConfigChanges(activityPluginBinding: ActivityPluginBinding?) {
+  }
+
+  override fun onDetachedFromActivity() {
+  }
+
+  private fun configFirebase() {
+    FirebaseApp.initializeApp(activity!!)
     firebaseAuth = FirebaseAuth.getInstance()
   }
 
@@ -73,7 +94,7 @@ class TwitterAuthFirebasePlugin: FlutterPlugin, MethodCallHandler {
         }
     } else {
       pendingResultTask =   firebaseAuth
-        ?.startActivityForSignInWithProvider(this, provider.build())
+        ?.startActivityForSignInWithProvider(activity!!, provider.build())
         ?.addOnSuccessListener {
           buildResult(it){map->
             callBack(map)
@@ -98,7 +119,7 @@ class TwitterAuthFirebasePlugin: FlutterPlugin, MethodCallHandler {
     // IdP data available in
     Log.d("twitter", "============================")
     authResult.user?.getIdToken(true)?.addOnCompleteListener {
-
+    try {
       if(it.isComplete){
         val idToken : String? = it.result.token
         Log.d("twitter", "Id Token::$idToken")
@@ -111,6 +132,12 @@ class TwitterAuthFirebasePlugin: FlutterPlugin, MethodCallHandler {
         map["message"] = "Got the data"
         onTokenReceived(map)
       }
+    }catch (e:Exception){
+      val m = mutableMapOf<String,Any?>()
+     m ["error"] = e.message.toString()
+      onTokenReceived(m)
+    }
+
     }
 
   }
