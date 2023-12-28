@@ -24,30 +24,54 @@ var provider = OAuthProvider(providerID: "twitter.com")
   }
     
     private func loginViaTwitter(result: @escaping FlutterResult){
+        
         provider.getCredentialWith(nil) { credential, error in
             
+              //Check if any error
               if error != nil {
                 // Handle error.
                   result(["error":"Error occurred - unable to get credentials."]);
               }
+              
+              // Check if credential is not nil
               if credential != nil {
+                  
+                  // Sign in with credential
                   Auth.auth().signIn(with: credential!)
                   { authResult, error in
-                  if error != nil {
-                      result(["success":false, "message": "Error occurred while signing in."]);
-                  }
-                  var authCredential = (authResult?.credential as? OAuthCredential)
-                      if(authCredential == nil){
-                          result(["success":false, "message":"Unable to resolve auth credential."]);
-                      }else{
-                          var response = [String: Any]()
-//                          response["profile"] = authResult?.additionalUserInfo?.profile
-                          response["idToken"] = authCredential!.idToken
-                          response["accessToken"] = authCredential!.accessToken
-                          response["success"] = true
-                          response["message"] = "Successfully logged in"
-                          result(response)
+                      
+                      // Check for any error while signing in with credentials
+                      if error != nil {
+                          result(["success":false, "message": "Error occurred while signing in."]);
                       }
+                      
+                      // Get id token of the current logged in user
+                      authResult!.user.getIDToken { (idToken, error) in
+                          
+                             // Check for any error while getting idToken for the signed in user
+                             if let error = error {
+                                 result(["success":false, "message":"Unable to get id token"]);
+                             }
+                          
+                             // Get oAuthCredentials
+                              var oAuth = authResult?.credential as?  OAuthCredential
+                             
+                             // Check if oAuth is null or not
+                              if(oAuth == nil){
+                                  result(["success":false, "message":"Unable to resolve auth credential."]);
+                              }
+                             // Generate map or dictionary to send the response to the result callback
+                          
+                              var response = [String: Any]()
+                              response["profile"] = authResult?.additionalUserInfo?.profile
+                              response["idToken"] = idToken
+                              response["accessToken"] = oAuth?.accessToken
+                              response["success"] = true
+                              response["message"] = "Successfully logged in"
+                          
+                              result(response)
+                         }
+                
                      
                   // User is signed in.
                   // IdP data available in authResult.additionalUserInfo.profile.

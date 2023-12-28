@@ -82,7 +82,9 @@ class TwitterAuthFirebasePlugin : FlutterPlugin, MethodCallHandler, ActivityAwar
 
     private fun twitter(callBack: (Map<String, Any?>) -> Unit) {
 
+        // Check if pendingResultTask is null or not
         if (pendingResultTask != null) {
+
             // There's something already here! Finish the sign-in for your user.
             pendingResultTask
                 ?.addOnSuccessListener {
