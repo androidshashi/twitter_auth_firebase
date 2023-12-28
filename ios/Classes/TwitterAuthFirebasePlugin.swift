@@ -41,7 +41,7 @@ var provider = OAuthProvider(providerID: "twitter.com")
                           result(["success":false, "message":"Unable to resolve auth credential."]);
                       }else{
                           var response = [String: Any]()
-                          response["profile"] = authResult?.additionalUserInfo?.profile
+//                          response["profile"] = authResult?.additionalUserInfo?.profile
                           response["idToken"] = authCredential!.idToken
                           response["accessToken"] = authCredential!.accessToken
                           response["success"] = true
