@@ -46,7 +46,7 @@ var provider = OAuthProvider(providerID: "twitter.com")
                           response["accessToken"] = authCredential!.accessToken
                           response["success"] = true
                           response["message"] = "Successfully logged in"
-                          result([response])
+                          result(response)
                       }
                      
                   // User is signed in.
