@@ -25,17 +25,30 @@ var provider = OAuthProvider(providerID: "twitter.com")
     
     private func loginViaTwitter(result: @escaping FlutterResult){
         provider.getCredentialWith(nil) { credential, error in
+            
               if error != nil {
                 // Handle error.
-                  result(["error":"Error occurred"]);
+                  result(["error":"Error occurred - unable to get credentials."]);
               }
               if credential != nil {
                   Auth.auth().signIn(with: credential!)
                   { authResult, error in
                   if error != nil {
-                      result(["error":"Error in login occurred"]);
+                      result(["success":false, "message": "Error occurred while signing in."]);
                   }
-                      result(["success":(authResult?.credential as? OAuthCredential)?.accessToken]);
+                  var authCredential = (authResult?.credential as? OAuthCredential)
+                      if(authCredential == nil){
+                          result(["success":false, "message":"Unable to resolve auth credential."]);
+                      }else{
+                          var response = [String: Any]()
+                          response["profile"] = authResult?.additionalUserInfo?.profile
+                          response["idToken"] = authCredential!.idToken
+                          response["accessToken"] = authCredential!.accessToken
+                          response["success"] = true
+                          response["message"] = "Successfully logged in"
+                          result([response])
+                      }
+                     
                   // User is signed in.
                   // IdP data available in authResult.additionalUserInfo.profile.
                   // Twitter OAuth access token can also be retrieved by:

@@ -128,13 +128,14 @@ class TwitterAuthFirebasePlugin : FlutterPlugin, MethodCallHandler, ActivityAwar
         authResult.user?.getIdToken(true)?.addOnCompleteListener {
             try {
                 if (it.isComplete) {
+                    Log.d("Twitter Auth Firebase Plugin", "============================")
                     val idToken: String? = it.result.token
                     Log.d("twitter", "Id Token::$idToken")
                     Log.d(
                         "twitter",
                         "Access Token::${((authResult.credential) as OAuthCredential).accessToken}"
                     )
-                    Log.d("twitter", "============================")
+
                     map["profile"] = authResult.additionalUserInfo?.profile.toString()
                     map["idToken"] = idToken
                     map["accessToken"] =
@@ -145,7 +146,8 @@ class TwitterAuthFirebasePlugin : FlutterPlugin, MethodCallHandler, ActivityAwar
                 }
             } catch (e: Exception) {
                 val m = mutableMapOf<String, Any?>()
-                m["error"] = e.message.toString()
+                m["message"] = e.message.toString()
+                m["success"] = false;
                 onTokenReceived(m)
             }
 
