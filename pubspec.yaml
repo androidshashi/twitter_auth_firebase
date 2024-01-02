@@ -1,6 +1,6 @@
 name: twitter_auth_firebase
 description: Twitter auth using firebase
-version: 0.1.0
+version: 0.5.0
 homepage: https://github.com/androidshashi/twitter_auth_firebase
 
 environment:
